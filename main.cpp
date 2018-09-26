@@ -55,6 +55,7 @@ int32_t velocity_filtered = 0;
 int32_t current_position = 0;
 
 uint8_t control_mode = 0;
+uint8_t check_motor = 0;
 
 int32_t position_absolute;
 int32_t velocity_unfiltered;
@@ -115,7 +116,10 @@ void sense_control_thread(void const *arg) {
   uint32_t last_time = last_sensor_data.time;
   int32_t last_position = current_position; // 3us
   last_sensor_data.time = system_timer.read_us(); // 19.6us
-  encoder.update_state();
+  // encoder.update_state();
+  if (check_motor == 0) {
+    check_motor = 1;
+  }
 
   dt = last_sensor_data.time - last_time; // timing
   current_position = encoder.get_cal_state();
@@ -310,5 +314,9 @@ int main() {
 
     // This will process any outgoing packets
     parser.send_worker();
+    if (check_motor == 1) {
+        encoder.update_state();
+        check_motor = 0;
+    }
   }
 }
